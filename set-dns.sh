@@ -14,7 +14,7 @@ if [ -z "$INTERFACE" ]; then
 fi
 
 # 定义netplan配置文件路径
-NETPLAN_CONFIG="/etc/netplan/01-netcfg.yaml"
+NETPLAN_CONFIG=$(find /etc/netplan -type f -name "*.yaml" | head -n 1)
 
 # 备份文件函数
 backup_file() {
