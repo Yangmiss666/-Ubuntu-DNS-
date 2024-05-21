@@ -5,7 +5,7 @@ DNS1="1.1.1.1"
 DNS2="1.0.0.1"
 
 # 获取网卡名称（假设系统中只有一个主要网卡）
-INTERFACE=$(ls /sys/class/net | grep -E '^(en|eth|wl)' | head -n 1)
+INTERFACE=$(ip route get 1 | grep -o 'dev.*' | awk '{print $2}')
 
 # 检查网卡名称是否找到
 if [ -z "$INTERFACE" ]; then
@@ -14,7 +14,7 @@ if [ -z "$INTERFACE" ]; then
 fi
 
 # 定义netplan配置文件路径
-NETPLAN_CONFIG=$(find /etc/netplan -type f -name "*.yaml" | head -n 1)
+NETPLAN_CONFIG="/etc/netplan/01-network-manager-all.yaml"
 
 # 备份文件函数
 backup_file() {
@@ -32,11 +32,10 @@ modify_netplan() {
     sudo tee "$NETPLAN_CONFIG" > /dev/null <<EOL
 network:
   version: 2
+  renderer: NetworkManager
   ethernets:
     $INTERFACE:
-      dhcp4: yes
-      dhcp4-overrides:
-        use-dns: false
+      dhcp4: true
       nameservers:
         addresses: [$DNS1, $DNS2]
 EOL
