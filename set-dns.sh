@@ -7,6 +7,12 @@ DNS2="1.0.0.1"
 # 获取网卡名称（假设系统中只有一个主要网卡）
 INTERFACE=$(ls /sys/class/net | grep -E '^(en|eth|wl)' | head -n 1)
 
+# 检查网卡名称是否找到
+if [ -z "$INTERFACE" ]; then
+    echo "Network interface not found. Please check your network configuration."
+    exit 1
+fi
+
 # 定义netplan配置文件路径
 NETPLAN_CONFIG="/etc/netplan/01-netcfg.yaml"
 
@@ -50,8 +56,8 @@ modify_systemd_resolved() {
     SYSTEMD_RESOLVED_CONFIG="/etc/systemd/resolved.conf"
     backup_file "$SYSTEMD_RESOLVED_CONFIG"
 
-    sudo sed -i 's/^#DNS=/DNS='$DNS1' '$DNS2'/' "$SYSTEMD_RESOLVED_CONFIG"
-    sudo sed -i 's/^#FallbackDNS=/FallbackDNS=1.1.1.1 1.0.0.1/' "$SYSTEMD_RESOLVED_CONFIG"
+    sudo sed -i "s/^#DNS=/DNS=$DNS1 $DNS2/" "$SYSTEMD_RESOLVED_CONFIG"
+    sudo sed -i "s/^#FallbackDNS=/FallbackDNS=1.1.1.1 1.0.0.1/" "$SYSTEMD_RESOLVED_CONFIG"
 
     sudo systemctl restart systemd-resolved
     if [ $? -eq 0 ]; then
